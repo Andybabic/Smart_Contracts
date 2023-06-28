@@ -14,6 +14,7 @@
 - [Contribution](#contribution)
 - [License](#license)
 - [Contact](#contact)
+- [Acknowledgements](#acknowledgements)
 
 ## Overview
 
@@ -79,6 +80,19 @@ Contributions are welcome. Please read the CONTRIBUTING document for best practi
 This project is licensed under Apache 2.0. See the LICENSE file for details.
 
 ## Contact
+
+For any queries, please contact [your-email@example.com].
+
+## Acknowledgements
+
+This project is part of a workshop on smart contracts and token creation with ERC20 organized by [FH St. Pölten](https://www.fhstp.ac.at/). 
+
+![FH St. Pölten Logo](https://creativemediasummer.fhstp.ac.at/images/logo.png)
+
+For more details about the workshop, please visit the [workshop page](https://creativemediasummer.fhstp.ac.at/workshops/smart-contracts-token-creation-with-erc20).
+
+---
+
 
 
 
