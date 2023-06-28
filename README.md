@@ -100,11 +100,7 @@ Contributions are welcome. Please read the CONTRIBUTING document for best practi
 
 This project is licensed under [LICENSE_NAME]. See the LICENSE file for details.
 
-## Contact
 
-For more information, please contact [Your Name] at [your.email@example.com].
-
-Please, note that this is a template for a README file and should be customized according to the specifics of your project. Replace placeholders such as [repository_url], [repository_directory], [LICENSE_NAME], [Your Name], and [your.email@example.com] with the actual values relevant to your project.
 
 Also, remember that creating a lottery, especially one that involves financial transactions, is a complex task that involves legal and security considerations. Ensure that you thoroughly test, review, and comply with all relevant laws before deploying any application that handles financial transactions or user data.
 
