@@ -93,5 +93,5 @@ This project is licensed under [LICENSE_NAME]. See the LICENSE file for details.
 
 Contact
 
-For more information, please contact [Your Name] at [your.email@example.com].
+For more information, please contact Andy Babic
 
