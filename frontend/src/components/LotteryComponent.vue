@@ -18,6 +18,7 @@ export default {
       isManager: false,
       winner: null,
       win: false,
+      deniedTransaction: false,
       
     };
   },
@@ -86,7 +87,8 @@ export default {
           })
           .on('error', error => {
             if (error.message.includes('User denied transaction signature')) {
-              alert('You denied the transaction. Please approve it to enter the lottery.');
+              this.deniedTransaction = true;
+
             } else {
               console.error('Error entering lottery:', error.message);
             }
@@ -154,19 +156,20 @@ export default {
           <label for="customPrice">Custom Ticket Price (ETH):</label>
           <input type="number" id="customPrice" v-model="ticketPrice" step="0.01">
         </div>
-        <button @click="enterLottery">Enter Lottery</button>
+        <div>
+        <p> Press the Quokka to enter the lottery </p>
+        </div>
+        <button @click="enterLottery"></button>
       </div>
 
-      <div v-if="win === true && currentState === BigInt(2n)">
+      <div v-if="win === true && currentState === BigInt(2n)" class="winning-message">
         <p>Congratulations you won the lottery!</p>
       </div>
-      <div v-if="win === false && currentState === BigInt(2n)">
+      <div v-if="win === false && currentState === BigInt(2n)" class="losing-message">
         <p> Sorry you did not win the lottery!</p>
       </div>
-
-
-      <div v-if="currentState === BigInt(1n)">
-        <p>Waiting for the winner to be picked...</p>
+      <div v-if="deniedTransaction" class="denied-transaction">
+        <p>Transaction denied.</p>
       </div>
       <div class="manager-actions">
         <button v-if="isManager" @click="pickWinner">Pick Winner</button>
@@ -177,6 +180,30 @@ export default {
 </template>
 
 <style>
+
+.winning-message {
+  background-color: green;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.losing-message {
+  background-color: red;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.denied-transaction {
+  background-color: red;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
 
 .lottery-info {
   margin-bottom: 20px;
@@ -219,6 +246,7 @@ h1 {
 
 p {
   margin-bottom: 10px;
+  font-size: 16px;
 }
 
 .status-message {
@@ -259,6 +287,8 @@ input[type="number"] {
 button {
   padding: 10px 20px;
   background-color: #007bff;
+  width: 200px;
+  height: 200px;
   color: gold;
   border: none;
   border-radius: 4px;
@@ -270,9 +300,6 @@ button {
   background-position: center;
 }
 
-button:hover {
-  background-color: #0069d9;
-}
 
 .loading {
   text-align: center;

@@ -137,7 +137,7 @@
   };
   </script>
   
-  <style scoped>
+  <style>
   .flip-clock {
     display: flex;
     justify-content: center;
@@ -173,7 +173,7 @@
   
   .flip-card-back {
     background-color: #333;
-    color: #fff;
+    color: gold;
     transform: rotateY(180deg);
   }
   
@@ -186,6 +186,7 @@
     font-weight: bold;
     transform: rotateX(0deg);
     transition: transform 0.5s;
+    color: gold;
   }
   
   .flip-card-bottom {
@@ -197,6 +198,7 @@
     font-weight: bold;
     transform: rotateX(180deg);
     transition: transform 0.5s;
+    color: gold;
   }
   
   .flip-card-inner.flip-animation .flip-card-top {
