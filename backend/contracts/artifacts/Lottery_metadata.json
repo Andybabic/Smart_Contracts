@@ -16,10 +16,28 @@
 						"internalType": "uint256",
 						"name": "_minimumPlayers",
 						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_timeoutToStart",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "nonpayable",
 				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "enum Lottery.LotteryState",
+						"name": "status",
+						"type": "uint8"
+					}
+				],
+				"name": "CurrentStatus",
+				"type": "event"
 			},
 			{
 				"anonymous": false,
@@ -44,6 +62,19 @@
 				"anonymous": false,
 				"inputs": [
 					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "time",
+						"type": "uint256"
+					}
+				],
+				"name": "TimeLeft",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
 						"indexed": true,
 						"internalType": "address",
 						"name": "winner",
@@ -55,19 +86,37 @@
 			},
 			{
 				"inputs": [],
-				"name": "currentState",
+				"name": "checkIfWinner",
 				"outputs": [
 					{
-						"internalType": "enum Lottery.LotteryState",
-						"name": "",
-						"type": "uint8"
+						"components": [
+							{
+								"internalType": "address",
+								"name": "id",
+								"type": "address"
+							},
+							{
+								"internalType": "bool",
+								"name": "isWinner",
+								"type": "bool"
+							}
+						],
+						"internalType": "struct Lottery.LastWinners",
+						"name": "myPlayer",
+						"type": "tuple"
 					}
 				],
 				"stateMutability": "view",
 				"type": "function"
 			},
 			{
-				"inputs": [],
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_ticketPrice",
+						"type": "uint256"
+					}
+				],
 				"name": "enter",
 				"outputs": [],
 				"stateMutability": "payable",
@@ -100,13 +149,19 @@
 				"type": "function"
 			},
 			{
-				"inputs": [],
-				"name": "manager",
-				"outputs": [
+				"inputs": [
 					{
 						"internalType": "address",
-						"name": "",
+						"name": "player",
 						"type": "address"
+					}
+				],
+				"name": "hasPlayerEntered",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
 					}
 				],
 				"stateMutability": "view",
@@ -130,25 +185,6 @@
 				"name": "pickWinner",
 				"outputs": [],
 				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"name": "players",
-				"outputs": [
-					{
-						"internalType": "address payable",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -176,19 +212,6 @@
 				],
 				"stateMutability": "view",
 				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "winner",
-				"outputs": [
-					{
-						"internalType": "address payable",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
 			}
 		],
 		"devdoc": {
@@ -204,7 +227,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/lottery.sol": "Lottery"
+			"backend/contracts/lottery.sol": "Lottery"
 		},
 		"evmVersion": "paris",
 		"libraries": {},
@@ -218,12 +241,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"contracts/lottery.sol": {
-			"keccak256": "0x748a68831fdd4268b82bb2c3c4ea8be74b954110a4c9fa8a1bd4cf8acfcd82af",
+		"backend/contracts/lottery.sol": {
+			"keccak256": "0x9ffe76a374cb82bdf654f05fc057f1b96e574e140d6d9dd5577e108c60727a8a",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://e4e60256bb4338c2c27f65a50b6262e14980ee17743eaa32dc4c2a49bc48093d",
-				"dweb:/ipfs/QmexuDJxmtcayAFzp8bAvcFXiDRXrSsWeZMAACJSmzYbiA"
+				"bzz-raw://fbc06934ff96fff46a97b5c20b6dbfbe5467a60b48513dea4c36af3316f91cfe",
+				"dweb:/ipfs/QmUo1g36UYYX3ukvcjvJxWWtzYMbiwNvwyeBgTLEEbN5sS"
 			]
 		}
 	},
