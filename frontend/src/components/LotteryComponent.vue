@@ -20,11 +20,26 @@
     <div v-if="errorMessage" class="error-message">
       {{ errorMessage }}
     </div>
+
+    <!-- Display list of participants -->
+    <div v-if="participants.length > 0" class="participant-list">
+      <h3>Participants:</h3>
+      <ul>
+        <li v-for="participant in participants" :key="participant.id">{{ participant.name }}</li>
+      </ul>
+    </div>
+
+    <!-- Show confetti if user is the winner -->
+    <div v-if="isWinner" class="confetti">
+      <!-- Confetti animation or celebration message -->
+      Congratulations! You are the winner!
+    </div>
   </div>
 </template>
 
 <script>
 import Web3 from "web3";
+// Import confetti library or component if available
 
 export default {
   data() {
@@ -35,6 +50,8 @@ export default {
       showTitle: true,
       showWinnerSection: false,
       errorMessage: "", // New data property for error message
+      participants: [], // New data property for participant list
+      isWinner: false, // New data property for winner flag
     };
   },
   async mounted() {
@@ -50,6 +67,11 @@ export default {
       }
       setTimeout(() => {
         this.showWinnerSection = true;
+        this.participants = [ // Mock participant data, replace with actual logic to fetch participants
+          { id: 1, name: "Participant 1" },
+          { id: 2, name: "Participant 2" },
+          { id: 3, name: "Participant 3" },
+        ];
       }, 1000);
     } catch (error) {
       this.errorMessage = "An error occurred while initializing the app.";
@@ -70,6 +92,11 @@ export default {
       try {
         const accounts = await this.web3.eth.getAccounts();
         await this.lotteryContract.methods.pickWinner().send({ from: accounts[0] });
+        // Check if user's account is the winner and set isWinner flag accordingly
+        // Replace the following logic with actual implementation based on your contract's winner selection mechanism
+        const userAccount = accounts[0];
+        const winnerAccount = ""; // Set the winner account here
+        this.isWinner = userAccount.toLowerCase() === winnerAccount.toLowerCase();
       } catch (error) {
         this.errorMessage = "An error occurred while picking the winner.";
         console.error(error);
@@ -136,5 +163,15 @@ export default {
 .error-message {
   color: red;
   margin-top: 10px;
+}
+
+.participant-list {
+  margin-top: 20px;
+}
+
+.confetti {
+  margin-top: 20px;
+  font-weight: bold;
+  color: #4caf50;
 }
 </style>
