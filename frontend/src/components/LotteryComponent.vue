@@ -16,7 +16,9 @@ export default {
       players: [],
       ticketCount: 0,
       isManager: false,
-      winner: null
+      winner: null,
+      win: false,
+      
     };
   },
   async mounted() {
@@ -105,6 +107,19 @@ export default {
               if (winnerEvent) {
                 const winnerAddress = winnerEvent.returnValues.winner;
                 this.winner = winnerAddress;
+
+                const accounts = this.web3.eth.getAccounts();
+                if (this.winner === accounts[0]) {
+                  this.win = true;
+
+                  console.log("You are the winner!");
+                  
+                } else {
+                  this.win = false;
+
+                  console.log("You are not the winner!");
+                
+                }
               }
 
               this.loadContract();
@@ -123,16 +138,14 @@ export default {
 
 <template>
   <div class="container">
-    <div class="header">
-      <h1>Lottery Contract</h1>
-    </div>
+
     <div class="content">
       <p class="status-message" v-if="currentState === BigInt(0n)">Lottery is currently open for entries.</p>
       <p class="status-message" v-else-if="currentState === BigInt(1n)">Lottery is closed. Waiting for the winner to be picked.</p>
       <p class="status-message" v-else-if="currentState === BigInt(2n)">Lottery has finished. Winner: <span class="winner">{{ winner }}</span></p>
-      <p class="loading" v-else>Loading...</p>
+      <p class="loading" v-else>Connect your Wallet to the Lottery ...</p>
 
-      <div v-if="currentState === BigInt(0n)">
+      <div  v-if="currentState === BigInt(0n)" class="lottery-info">
         <p>Ticket Price: {{ ticketPrice }} ETH</p>
         <p>Minimum Players: {{ minimumPlayers }}</p>
         <p>Current Players: {{ players.length }}</p>
@@ -144,17 +157,47 @@ export default {
         <button @click="enterLottery">Enter Lottery</button>
       </div>
 
+      <div v-if="win === true && currentState === BigInt(2n)">
+        <p>Congratulations you won the lottery!</p>
+      </div>
+      <div v-if="win === false && currentState === BigInt(2n)">
+        <p> Sorry you did not win the lottery!</p>
+      </div>
+
+
+      <div v-if="currentState === BigInt(1n)">
+        <p>Waiting for the winner to be picked...</p>
+      </div>
       <div class="manager-actions">
         <button v-if="isManager" @click="pickWinner">Pick Winner</button>
       </div>
     </div>
-    <div class="footer">
-      <p>LOTTERY</p>
-    </div>
+
   </div>
 </template>
 
 <style>
+
+.lottery-info {
+  margin-bottom: 20px;
+  font-size: 18px;
+
+
+
+}
+
+.container {
+  max-width: 800px;
+  padding: 20px;
+  margin: 10 auto;
+
+  background-color: gold; 
+
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+}
 
 .content {
   margin-top: 20px;
@@ -179,8 +222,11 @@ p {
 }
 
 .status-message {
-  font-style: italic;
-  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: bold;
+
+  margin-bottom: 20px;
+
 }
 
 .winner {
@@ -199,21 +245,29 @@ p {
 }
 
 input[type="number"] {
-  padding: 8px;
+  padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 14px;
-  margin-bottom: 10px;
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 5px 0;
 }
+
+
 
 button {
   padding: 10px 20px;
   background-color: #007bff;
-  color: #fff;
+  color: gold;
   border: none;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 30px;
   cursor: pointer;
+  background-image: url("../assets/QuokkaDol.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 button:hover {
