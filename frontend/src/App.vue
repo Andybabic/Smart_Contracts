@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import LotteryComponent from "./components/Lottery.vue";
+import LotteryComponent from "./components/LotteryComponent.vue";
 
 export default {
   name: "App",
