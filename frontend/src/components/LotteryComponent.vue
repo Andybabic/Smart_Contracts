@@ -1,177 +1,242 @@
-<template>
-  <div class="lottery-container">
-    <transition name="fade">
-      <h2 v-if="showTitle">Enter Lottery</h2>
-    </transition>
-
-    <div class="input-group">
-      <input type="text" v-model="amount" placeholder="Amount of tokens to enter" />
-      <button @click="enterLottery" class="enter-button">Enter Lottery</button>
-    </div>
-
-    <transition name="slide-fade">
-      <div v-if="showWinnerSection" class="winner-section">
-        <h2>Admin Only: Pick Winner</h2>
-        <button @click="pickWinner" class="pick-winner-button">Pick Winner</button>
-      </div>
-    </transition>
-
-    <!-- Display error message if an error occurred -->
-    <div v-if="errorMessage" class="error-message">
-      {{ errorMessage }}
-    </div>
-
-    <!-- Display list of participants -->
-    <div v-if="participants.length > 0" class="participant-list">
-      <h3>Participants:</h3>
-      <ul>
-        <li v-for="participant in participants" :key="participant.id">{{ participant.name }}</li>
-      </ul>
-    </div>
-
-    <!-- Show confetti if user is the winner -->
-    <div v-if="isWinner" class="confetti">
-      <!-- Confetti animation or celebration message -->
-      Congratulations! You are the winner!
-    </div>
-  </div>
-</template>
 
 <script>
-import Web3 from "web3";
-// Import confetti library or component if available
+import Web3 from 'web3';
+import axios from "axios";
 
 export default {
   data() {
     return {
+      contractAddress: '0xbbaa17F1a80B18d69Ae9070420699ecA96DAb01B',
+      contractABI: [], // Contract ABI should be provided here
       web3: null,
-      lotteryContract: null,
-      amount: "",
-      showTitle: true,
-      showWinnerSection: false,
-      errorMessage: "", // New data property for error message
-      participants: [], // New data property for participant list
-      isWinner: false, // New data property for winner flag
+      ticketPrice: 0,
+      contractInstance: null,
+      currentState: '',
+      minimumPlayers: 0,
+      players: [],
+      ticketCount: 0,
+      isManager: false,
+      winner: null
     };
   },
   async mounted() {
-    try {
-      if (window.ethereum) {
-        this.web3 = new Web3(window.ethereum);
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-
-        const contractABI = []; // Set your contract ABI here
-        const contractAddress = ""; // Set your contract address here
-
-        this.lotteryContract = new this.web3.eth.Contract(contractABI, contractAddress);
-      }
-      setTimeout(() => {
-        this.showWinnerSection = true;
-        this.participants = [ // Mock participant data, replace with actual logic to fetch participants
-          { id: 1, name: "Participant 1" },
-          { id: 2, name: "Participant 2" },
-          { id: 3, name: "Participant 3" },
-        ];
-      }, 1000);
-    } catch (error) {
-      this.errorMessage = "An error occurred while initializing the app.";
-      console.error(error);
-    }
+    await this.initializeWeb3();
+    await this.loadContract();
   },
   methods: {
+    async initializeWeb3() {
+      try {
+          if (typeof window.ethereum !== 'undefined') {
+          this.web3 = new Web3(window.ethereum);
+          await window.ethereum.enable();
+        } else if (typeof window.web3 !== 'undefined') {
+          this.web3 = new Web3(window.web3.currentProvider);
+        } else {
+          this.web3 = new Web3('https://mainnet.infura.io/v3/84a017e2ca8b4a02b39ab4c41bdbb1a2'); // Update with your Ethereum node URL
+      }
+      } catch (error) {
+        console.error('Error initializing web3:', error);
+        throw error;
+      }
+  
+    },
+    async getContractABI(contractAddress) {
+      try {
+        const response = await axios.get(`https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${contractAddress}&apikey=UKPPPWAGDJFVPQ9DIU3EH157GPQ9132UDT`);
+        const result = response.data;
+        if (result.status === '1') {
+          return JSON.parse(result.result);
+        } else {
+          console.log(result)
+          throw new Error('Failed to fetch contract ABI');
+        }
+      } catch (error) {
+        console.error('Error fetching contract ABI:', error);
+        throw error;
+      }
+    },
+    async loadContract() {
+      const abi = require("../assets/abi.json")
+      this.contractInstance = new this.web3.eth.Contract(abi, this.contractAddress);
+      const currentState = await this.contractInstance.methods.getCurrentState().call();
+      const ticketPrice = await this.contractInstance.methods.ticketPrice().call();
+      const ticketPriceEth = this.web3.utils.fromWei(ticketPrice, "ether");
+      const minimumPlayers = await this.contractInstance.methods.minimumPlayers().call();
+
+      const players = await this.contractInstance.methods.getPlayers().call();
+      const ticketCount = players.length;
+
+      this.currentState = currentState;
+      this.ticketPrice = ticketPriceEth
+      this.minimumPlayers = minimumPlayers;
+      this.players = players;
+      this.ticketCount = ticketCount;
+      this.isManager = false;
+    },
     async enterLottery() {
       try {
         const accounts = await this.web3.eth.getAccounts();
-        await this.lotteryContract.methods.enter(this.amount).send({ from: accounts[0] });
+        const ticketPriceWei = this.web3.utils.toWei(this.ticketPrice.toString(), "ether");
+        this.contractInstance.methods.enter(ticketPriceWei).send({from: accounts[0], value: ticketPriceWei})
+          .on('receipt', () => {
+            console.log('Entered lottery successfully.');
+            this.loadContract();
+          })
+          .on('error', error => {
+            if (error.message.includes('User denied transaction signature')) {
+              alert('You denied the transaction. Please approve it to enter the lottery.');
+            } else {
+              console.error('Error entering lottery:', error.message);
+            }
+          });
+       
       } catch (error) {
-        this.errorMessage = "An error occurred while entering the lottery.";
-        console.error(error);
+        console.error('Error entering lottery:', error.message);
       }
     },
     async pickWinner() {
       try {
-        const accounts = await this.web3.eth.getAccounts();
-        await this.lotteryContract.methods.pickWinner().send({ from: accounts[0] });
-        // Check if user's account is the winner and set isWinner flag accordingly
-        // Replace the following logic with actual implementation based on your contract's winner selection mechanism
-        const userAccount = accounts[0];
-        const winnerAccount = ""; // Set the winner account here
-        this.isWinner = userAccount.toLowerCase() === winnerAccount.toLowerCase();
+        this.contractInstance.methods.pickWinner().send()
+            .on('receipt', receipt => {
+              console.log('Winner picked successfully.');
+
+              // Retrieve the winner event from the receipt
+              const winnerEvent = receipt.events.WinnerPicked;
+              if (winnerEvent) {
+                const winnerAddress = winnerEvent.returnValues.winner;
+                this.winner = winnerAddress;
+              }
+
+              this.loadContract();
+            })
+            .on('error', error => {
+              console.error('Error picking winner:', error.message);
+            });
       } catch (error) {
-        this.errorMessage = "An error occurred while picking the winner.";
-        console.error(error);
+        console.error('Error picking winner:', error.message);
       }
     },
-  },
-};
+  }
+}
 </script>
 
-<style scoped>
-.lottery-container {
-  text-align: center;
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 40px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+
+<template>
+  <div class="container">
+    <div class="header">
+      <h1>Lottery Contract</h1>
+    </div>
+    <div class="content">
+      <p class="status-message" v-if="currentState === BigInt(0n)">Lottery is currently open for entries.</p>
+      <p class="status-message" v-else-if="currentState === BigInt(1n)">Lottery is closed. Waiting for the winner to be picked.</p>
+      <p class="status-message" v-else-if="currentState === BigInt(2n)">Lottery has finished. Winner: <span class="winner">{{ winner }}</span></p>
+      <p class="loading" v-else>Loading...</p>
+
+      <div v-if="currentState === BigInt(0n)">
+        <p>Ticket Price: {{ ticketPrice }} ETH</p>
+        <p>Minimum Players: {{ minimumPlayers }}</p>
+        <p>Current Players: {{ players.length }}</p>
+        <p>Total Tickets Sold: {{ ticketCount }}</p>
+        <div class="input-group">
+          <label for="customPrice">Custom Ticket Price (ETH):</label>
+          <input type="number" id="customPrice" v-model="ticketPrice" step="0.01">
+        </div>
+        <button @click="enterLottery">Enter Lottery</button>
+      </div>
+
+      <div class="manager-actions">
+        <button v-if="isManager" @click="pickWinner">Pick Winner</button>
+      </div>
+    </div>
+    <div class="footer">
+      <p>LOTTERY</p>
+    </div>
+  </div>
+</template>
+
+<style>
+
+.content {
+  margin-top: 20px;
 }
 
-.input-group {
+.footer {
+  background: linear-gradient(to right, #6dd5fa, #2980b9);
+  color: #fff;
+  padding: 10px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 24px;
   margin-bottom: 20px;
 }
 
-.enter-button,
-.pick-winner-button {
-  margin-left: 10px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
+p {
+  margin-bottom: 10px;
+}
+
+.status-message {
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+.winner {
+  font-weight: bold;
+  color: #28a745;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.label {
+  margin-bottom: 5px;
+}
+
+input[type="number"] {
+  padding: 8px;
+  border: 1px solid #ccc;
   border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
   cursor: pointer;
 }
 
-.pick-winner-button {
-  background-color: #f44336;
+button:hover {
+  background-color: #0069d9;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 1s;
-}
-.fade-enter,
-.fade-leave-to /* .fade-leave-active in <2.1.8 */ {
-  opacity: 0;
-}
-
-.slide-fade-enter-active {
-  transition: all 1s ease;
-}
-.slide-fade-leave-active {
-  transition: all 0.5s cubic-bezier(1.0, 0.5, 0.8, 1.0);
-}
-.slide-fade-enter,
-.slide-fade-leave-to {
-  transform: translateY(10px);
-  opacity: 0;
-}
-
-.error-message {
-  color: red;
-  margin-top: 10px;
-}
-
-.participant-list {
+.loading {
+  text-align: center;
   margin-top: 20px;
 }
 
-.confetti {
+.manager-actions {
   margin-top: 20px;
-  font-weight: bold;
-  color: #4caf50;
+  text-align: right;
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 20px;
+  }
+  
+  .input-group {
+    flex-direction: column;
+  }
 }
 </style>

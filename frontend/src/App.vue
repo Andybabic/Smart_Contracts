@@ -1,6 +1,26 @@
+
+
+<script>
+import LotteryComponent from "./components/LotteryComponent.vue";
+import {Countdown} from 'vue3-flip-countdown'
+
+export default {
+  name: "App",
+  components: {
+    LotteryComponent,
+    Countdown,
+  },
+  data() {
+    return {
+      targetTimestamp: 0,
+    };
+  },
+};
+</script>
+
+
 <template>
-  <div id="app">
-    <header class="header">
+  <header class="header">
       <img src="./assets/QuokkaDol.jpg" class="logo" />
       <nav class="menu">
         <ul>
@@ -10,8 +30,19 @@
         </ul>
       </nav>
     </header>
+  <div id="app">
 
-    <lottery-component></lottery-component>
+    
+
+
+
+    <main class="content">
+
+
+     <Countdown :targetTimestamp="targetTimestamp" />
+ 
+      <LotteryComponent />
+    </main>
 
     <footer class="footer">
       <p>&copy; 2023 Your App. All rights reserved.</p>
@@ -19,22 +50,11 @@
   </div>
 </template>
 
-<script>
-import LotteryComponent from "./components/LotteryComponent.vue";
-
-export default {
-  name: "App",
-  components: {
-    LotteryComponent
-  }
-};
-</script>
-
 <style>
 #app {
   text-align: center;
   padding: 40px;
-  background-color: #4b3927;
+  background-color: gold;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -63,8 +83,12 @@ export default {
 
 .menu ul li a {
   text-decoration: none;
-  color: #fff;
+  color: #333;
   font-weight: bold;
+}
+
+.content {
+  flex-grow: 2;
 }
 
 .footer {
