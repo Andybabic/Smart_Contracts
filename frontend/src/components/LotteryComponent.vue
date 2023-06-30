@@ -104,7 +104,6 @@ export default {
     async showLoading(message){
       Swal.fire({
         text: message,
-        icon,
         showConfirmButton: false,
         showCancelButton: false,
         allowOutsideClick: false,
