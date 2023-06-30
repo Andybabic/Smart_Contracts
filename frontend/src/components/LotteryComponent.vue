@@ -194,11 +194,18 @@ export default {
 
 <template>
   <div class="container">
+
+  <div class="meta-info">
+  <img src="../assets/metamask.png" alt="MetaMask" class="metamask-logo">
+    <p>You need a MetaMask-Wallet to join this lottery!</p>
+  </div>
+
+
     <div class="overlay"></div>
 
     <div class="header">
       <div v-if="currentState === BigInt(0n)" class="status-open">
-        <p class="status-message">Lottery is currently open for entries!</p>
+        <p class="status-message">Quokka is currently open for entries!</p>
       </div>
       <div v-else-if="currentState === BigInt(1n)" class="status-closed">
         <p class="status-message">Lottery is closed. Waiting for the winner to be picked!</p>
@@ -255,6 +262,23 @@ export default {
 </template>
 
 <style>
+
+.meta-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.meta-info p {
+  margin-left: 10px;
+}
+
+.metamask-logo {
+  width: 50px;
+  height: 50px;
+}
 
 .header {
   font-weight: bold;
@@ -484,13 +508,15 @@ body {
 
 .container {
   max-width: 600px;
-  margin-top: 30vh;
-  padding: 20px;
+  margin-top: 25vh;
+  padding: 50px;
   border-radius: 10px;
   box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5);
   position: relative;
   overflow: hidden;
   background-image: linear-gradient(to bottom right, #FDFCFB, #E2D1C3);
+
+  
 
 
 }
@@ -500,6 +526,8 @@ body {
     margin: auto 20px;
     border-radius: 10px;
     box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    font-size: 10px;
 
   }
   
