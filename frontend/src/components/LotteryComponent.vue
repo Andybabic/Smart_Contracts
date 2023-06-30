@@ -66,7 +66,12 @@ export default {
       this.ticketCount = ticketCount;
       this.isManager = false;
 
-      this.setIntervalCheckingContract();
+      if(localStorage.get('txHash')){
+        this.showLoading("Your last Transaction is still pending... Please wait until it is finished. Unfortunately it is not possible to participate until the transaction is finished.");
+        await this.checkTransaction();  
+      } else {
+        this.setIntervalCheckingContract();
+      }
     },
     async enterLottery() {
       try {
@@ -76,6 +81,7 @@ export default {
         const isPlayerEntered = await this.contractInstance.methods.hasPlayerEntered(playerAddress).call();
 
         if(localStorage.get('txHash')){
+          try{Swal.close()}catch(e){};
           this.showLoading("Your Transaction is currently pending... Please wait until it is finished.")
           await this.checkTransaction();
         } else if(isPlayerEntered){
