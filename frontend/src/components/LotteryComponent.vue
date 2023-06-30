@@ -3,13 +3,9 @@
 import Web3 from "web3";
 import axios from "axios";
 import Swal from "sweetalert2";
-import ManagerComponent from "./ManagerComponent.vue";
 
 export default {
   name: "LotteryComponent",
-  components: {
-    ManagerComponent,
-  },
   data() {
     return {
       contractAddress: "0x1db6bf5535f5c4084ba8cb5be0a0543a193777c2",
