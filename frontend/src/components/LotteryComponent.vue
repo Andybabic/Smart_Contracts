@@ -1,4 +1,3 @@
-
 <script>
 import Web3 from 'web3';
 import axios from "axios";
@@ -6,7 +5,7 @@ import axios from "axios";
 export default {
   data() {
     return {
-      contractAddress: '0xbbaa17F1a80B18d69Ae9070420699ecA96DAb01B',
+      contractAddress: '0x6fae85ec11b3001646f19f3ef94b4f08e0bc0117',
       contractABI: [], // Contract ABI should be provided here
       web3: null,
       ticketPrice: 0,
@@ -19,7 +18,7 @@ export default {
       winner: null,
       win: false,
       deniedTransaction: false,
-      
+
     };
   },
   async mounted() {
@@ -29,19 +28,19 @@ export default {
   methods: {
     async initializeWeb3() {
       try {
-          if (typeof window.ethereum !== 'undefined') {
+        if (typeof window.ethereum !== 'undefined') {
           this.web3 = new Web3(window.ethereum);
           await window.ethereum.enable();
         } else if (typeof window.web3 !== 'undefined') {
           this.web3 = new Web3(window.web3.currentProvider);
         } else {
           this.web3 = new Web3('https://mainnet.infura.io/v3/84a017e2ca8b4a02b39ab4c41bdbb1a2'); // Update with your Ethereum node URL
-      }
+        }
       } catch (error) {
         console.error('Error initializing web3:', error);
         throw error;
       }
-  
+
     },
     async getContractABI(contractAddress) {
       try {
@@ -81,19 +80,19 @@ export default {
         const accounts = await this.web3.eth.getAccounts();
         const ticketPriceWei = this.web3.utils.toWei(this.ticketPrice.toString(), "ether");
         this.contractInstance.methods.enter(ticketPriceWei).send({from: accounts[0], value: ticketPriceWei})
-          .on('receipt', () => {
-            console.log('Entered lottery successfully.');
-            this.loadContract();
-          })
-          .on('error', error => {
-            if (error.message.includes('User denied transaction signature')) {
-              this.deniedTransaction = true;
+            .on('receipt', () => {
+              console.log('Entered lottery successfully.');
+              this.loadContract();
+            })
+            .on('error', error => {
+              if (error.message.includes('User denied transaction signature')) {
+                this.deniedTransaction = true;
 
-            } else {
-              console.error('Error entering lottery:', error.message);
-            }
-          });
-       
+              } else {
+                console.error('Error entering lottery:', error.message);
+              }
+            });
+
       } catch (error) {
         console.error('Error entering lottery:', error.message);
       }
@@ -115,12 +114,12 @@ export default {
                   this.win = true;
 
                   console.log("You are the winner!");
-                  
+
                 } else {
                   this.win = false;
 
                   console.log("You are not the winner!");
-                
+
                 }
               }
 
@@ -140,14 +139,26 @@ export default {
 
 <template>
   <div class="container">
-
+    <div class="overlay"></div>
+    <video autoplay loop muted>
+      <source src="../assets/gambling-background-casino-and-poker-concept-2023-04-14-17-11-37-utc.mp4" type="video/mp4">
+    </video>
     <div class="content">
-      <p class="status-message" v-if="currentState === BigInt(0n)">Lottery is currently open for entries.</p>
-      <p class="status-message" v-else-if="currentState === BigInt(1n)">Lottery is closed. Waiting for the winner to be picked.</p>
-      <p class="status-message" v-else-if="currentState === BigInt(2n)">Lottery has finished. Winner: <span class="winner">{{ winner }}</span></p>
+      <div v-if="currentState === BigInt(0n)">
+        <div class="dot dot-green"></div>
+        <p class="status-message">Lottery is currently open for entries.</p>
+      </div>
+      <div v-else-if="currentState === BigInt(1n)">
+        <div class="dot dot-yellow"></div>
+        <p class="status-message">Lottery is closed. Waiting for the winner to be picked.</p>
+      </div>
+      <div v-else-if="currentState === BigInt(2n)">
+        <div class="dot dot-red"></div>
+        <p class="status-message">Lottery has finished. Winner: <span class="winner">{{ winner }}</span></p>
+      </div>
       <p class="loading" v-else>Connect your Wallet to the Lottery ...</p>
 
-      <div  v-if="currentState === BigInt(0n)" class="lottery-info">
+      <div v-if="currentState === BigInt(0n)" class="lottery-info">
         <p>Ticket Price: {{ ticketPrice }} ETH</p>
         <p>Minimum Players: {{ minimumPlayers }}</p>
         <p>Current Players: {{ players.length }}</p>
@@ -157,7 +168,7 @@ export default {
           <input type="number" id="customPrice" v-model="ticketPrice" step="0.01">
         </div>
         <div>
-        <p> Press the Quokka to enter the lottery </p>
+          <p> Press the Quokka to enter the lottery </p>
         </div>
         <button @click="enterLottery"></button>
       </div>
@@ -207,24 +218,11 @@ export default {
 
 .lottery-info {
   margin-bottom: 20px;
-  font-size: 18px;
-
+  font-size: 22px;
 
 
 }
 
-.container {
-  max-width: 800px;
-  padding: 20px;
-  margin: 10 auto;
-
-  background-color: gold; 
-
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-
-}
 
 .content {
   margin-top: 20px;
@@ -245,16 +243,33 @@ h1 {
 }
 
 p {
-  margin-bottom: 10px;
-  font-size: 16px;
+  margin-bottom: 15px;
+  font-size: 22px;
 }
 
 .status-message {
-  font-size: 18px;
+  font-size: 25px;
   font-weight: bold;
-
   margin-bottom: 20px;
+}
 
+.dot {
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.dot-green {
+  background-color: lightgreen;
+}
+
+.dot-yellow {
+  background-color: orange;
+}
+
+.dot-red {
+  background-color: red;
 }
 
 .winner {
@@ -281,7 +296,6 @@ input[type="number"] {
   box-sizing: border-box;
   margin: 5px 0;
 }
-
 
 
 button {
@@ -315,9 +329,46 @@ button {
   h1 {
     font-size: 20px;
   }
-  
+
   .input-group {
     flex-direction: column;
   }
 }
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  position: relative;
+}
+
+.container {
+  width: 180%;
+  height: 60vh;
+  margin: 0;
+  padding: 0;
+  background-color: #f2f2f2;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
 </style>

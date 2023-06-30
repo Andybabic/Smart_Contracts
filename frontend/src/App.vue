@@ -22,7 +22,7 @@ export default {
 <template>
 
   <div id="app">
-
+   <img src="./assets/title.png" alt="Quokka Image" class="quokka-image">
     <Countdown :targetTimestamp="targetTimestamp" />
 
     <LotteryComponent />
@@ -37,17 +37,18 @@ export default {
 
 #app {
   text-align: center;
-  min-height: 100vh;  
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   color: #2c3e50;
-  
-
-
 }
-
+.quokka-image {
+  width: 300px; /* Adjust the width as needed */
+  height: auto;
+  margin-bottom: 20px; /* Add margin to create space between the image and other elements */
+}
 
 .logo {
   height: 100px;
