@@ -191,8 +191,7 @@ export default {
         let receipt = null;
         while (receipt === null) {
           receipt = await this.web3.eth.getTransactionReceipt(transactionHash);
-          console.log("RECEIPT", receipt);
-          if (receipt && receipt.status) {
+          if (receipt && receipt.status == false) {
             throw new Error("Transaction failed or reverted");
           } else {
             await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay between each check (e.g., 3 seconds)
