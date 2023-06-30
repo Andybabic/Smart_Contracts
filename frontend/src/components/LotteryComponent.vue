@@ -66,7 +66,12 @@ export default {
       this.ticketCount = ticketCount;
       this.isManager = false;
 
-      this.setIntervalCheckingContract();
+      if(localStorage.get('txHash')){
+        this.showLoading("Your last Transaction is still pending... Please wait until it is finished. Unfortunately it is not possible to participate until the transaction is finished.");
+        await this.checkTransaction();  
+      } else {
+        this.setIntervalCheckingContract();
+      }
     },
     async enterLottery() {
       try {
@@ -75,30 +80,29 @@ export default {
         const playerAddress = accounts[0];
         const isPlayerEntered = await this.contractInstance.methods.hasPlayerEntered(playerAddress).call();
 
-        if(isPlayerEntered){
+        if(localStorage.get('txHash')){
+          try{Swal.close()}catch(e){};
+          this.showLoading("Your Transaction is currently pending... Please wait until it is finished.")
+          await this.checkTransaction();
+        } else if(isPlayerEntered){
           await this.showAlert("Already Entered", "You have already entered. Please wait until the winner is picked.", "info");
         } else {
-          this.showLoading();
+          this.showLoading("Please wait until the Transaction is complete. WARNING! Don't close this window until the process is finished!");
+          
           // send coins
           const result = await this.contractInstance.methods.enter(ticketPriceWei).send({from: accounts[0], value: ticketPriceWei});
           
           // retrieve hash and check for completion
           const txHash = result.transactionHash;
+          localStorage.setItem("txHash", "Tom");
 
           // wait until transaction is complete
-          const transactionResult = await this.waitForTransactionCompletion();
-
-          // check result
-          if(transactionResult){
-            Swal.close();
-            await this.showAlert("Success", "Transaction finished successfully. You entered lottery!", "success");
-          } else {
-            Swal.close();
-            await this.showAlert("Error", "Something went wrong during transaction. Please try again.", "error");
-          }
+          this.checkTransaction();
         }
       } catch (error) {
         Swal.close();
+        this.updateInterval();
+        try{localStorage.removeItem("txHash")}catch(e){};
         this.showAlert("Error occurred during Transaction.", error, "error");
       }
     },
@@ -147,6 +151,25 @@ export default {
         await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay between each check (e.g., 3 seconds)
       }
       return receipt;
+    },
+
+    async checkTransaction(){
+      try{
+        const transactionResult = await this.waitForTransactionCompletion();
+            // check result
+            if(transactionResult){
+              Swal.close();
+              await this.showAlert("Success", "Transaction finished successfully. You entered lottery!", "success");
+            } else {
+              Swal.close();
+              await this.showAlert("Error", "Something went wrong during transaction. Please try again.", "error");
+            }
+        localStorage.removeItem("txHash");
+      } catch(e) {
+        Swal.close();
+        this.showAlert("Error occurred during Transaction.", e, "error");
+        localStorage.removeItem("txHash");
+      }
     },
 
     async setIntervalCheckingContract(){
