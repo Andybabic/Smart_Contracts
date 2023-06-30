@@ -42,6 +42,7 @@ video {
   height: 100%;
   object-fit: cover;
   z-index: -1;
+  filter: blur(3px);
 }
 
 #app {

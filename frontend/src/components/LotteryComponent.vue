@@ -196,21 +196,23 @@ export default {
   <div class="container">
     <div class="overlay"></div>
 
-
-    <div class="content">
-      <div v-if="currentState === BigInt(0n)" class="status">
-        <div class="dot dot-green"></div>
-        <p class="status-message">Lottery is currently open for entries.</p>
+    <div class="header">
+      <div v-if="currentState === BigInt(0n)" class="status-open">
+        <p class="status-message">Lottery is currently open for entries!</p>
       </div>
-      <div v-else-if="currentState === BigInt(1n)">
-        <div class="dot dot-yellow"></div>
-        <p class="status-message">Lottery is closed. Waiting for the winner to be picked.</p>
+      <div v-else-if="currentState === BigInt(1n)" class="status-closed">
+        <p class="status-message">Lottery is closed. Waiting for the winner to be picked!</p>
       </div>
-      <div v-else-if="currentState === BigInt(2n)">
-        <div class="dot dot-red"></div>
+      <div v-else-if="currentState === BigInt(2n)" class="status-finished">
         <p class="status-message">Lottery has finished. Winner: <span class="winner">{{ winner }}</span></p>
       </div>
       <p class="loading" v-else>Connect your Wallet to the Lottery ...</p>
+    </div>
+
+
+    <div class="content">
+     
+      
 
       <div v-if="currentState === BigInt(0n)" class="lottery-info">
 
@@ -224,18 +226,16 @@ export default {
       </div>
         
         <div class="ticket-container">
-          <p>{{ ticketCount }}</p>
+          <p>{{ ticketCount }} / {{ minimumPlayers }}</p>
         <img src="../assets/fahrkarte.png" alt="ticket" class="ticket">
         
         </div>
         </div>
 
-        <p>Minimum Players: {{ minimumPlayers }}</p>
-
         
 
         <div>
-          <p> Press the Quokka to enter the lottery </p>
+          <p> Press the Quokka to enter!</p>
         </div>
         <button @click="enterLottery"></button>
       </div>
@@ -255,6 +255,35 @@ export default {
 </template>
 
 <style>
+
+.header {
+  font-weight: bold;
+}
+
+
+.status-open {
+  background-color: rgba(0, 255, 0, 0.4);
+  color: black;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.status-closed {
+  background-color: rgba(255, 255, 0, 0.4);
+  color: black;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.status-finished {
+  background-color: rgba(255, 0, 0, 0.4);
+  color: black;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
 
 .loading-container {
   display: flex;
@@ -318,6 +347,11 @@ export default {
   justify-content: center;
 
   margin-bottom: 20px;
+}
+
+.ticket-container img {
+  width: 50px;
+  height: 50px;
 }
 
 .ticket-container p {
@@ -450,13 +484,15 @@ body {
 
 .container {
   max-width: 600px;
-  margin: 50px auto;
+  margin-top: 30vh;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5);
   position: relative;
   overflow: hidden;
-  background: linear-gradient(to bottom, #f9f9f9, #bfbfbf);
+  background-image: linear-gradient(to bottom right, #FDFCFB, #E2D1C3);
+
+
 }
 
 @media screen and (max-width: 600px) {
