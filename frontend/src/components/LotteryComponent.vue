@@ -148,10 +148,9 @@ export default {
 
           console.log("ACCOUNT", accounts);
 
-          // send coins
-          const result = await this.contractInstance.methods
-            .enter(ticketPriceWei)
-            .send({ from: accounts[0], value: ticketPriceWei });
+            result = await this.contractInstance.methods
+              .enter(ticketPriceWei)
+              .send({ from: accounts[0], value: ticketPriceWei });
 
           // retrieve hash and check for completion
           const txHash = result.transactionHash;
@@ -169,6 +168,11 @@ export default {
         } catch (e) {}
         this.showAlert("Error occurred during Transaction.", error, "error");
       }
+    },
+    async getCurrentGasPrice(){
+      const gasPrice = await this.web3.eth.getGasPrice();
+      console.log("RAW price", gasPrice);
+      console.log('Current gas price:', this.web3.utils.fromWei(gasPrice, 'wei'), 'Gwei');
     },
     async showLoading(message) {
       Swal.fire({
@@ -293,12 +297,6 @@ export default {
         if (timeout) {
           this.timeout = Number(timeout);
         }
-        console.log("timeout", this.timeout);
-
-        console.log(
-          "BALANCE",
-          await this.web3.eth.getBalance(this.contractAddress)
-        );
 
         if (this.currentState !== Number(currentState)) {
           try {
@@ -351,9 +349,13 @@ export default {
     async closeLotteryAndPickWinner() {
       try {
         const accounts = await this.web3.eth.getAccounts();
-        await this.contractInstance.methods
+        const estimate = await this.contractInstance.methods.closeLotteryAndPickWinner().estimateGas({from: accounts[0]});
+        console.log("ESTIMATE", estimate);
+        const res = await this.contractInstance.methods
           .closeLotteryAndPickWinner()
           .send({ from: accounts[0] });
+        const txHash = res.transactionHash;
+        await this.checkTransaction(txHash);
       } catch (error) {
         console.error("Failed to close lottery and pick winner", error);
       }
@@ -705,8 +707,8 @@ body {
   max-width: 600px;
   padding: 50px;
   border-radius: 10px;
--webkit-box-shadow: 5px 5px 9px -1px rgba(255,255,255,0.35); 
-box-shadow: 5px 5px 9px -1px rgba(255,255,255,0.35);
+  -webkit-box-shadow: 5px 5px 9px -1px rgba(255, 255, 255, 0.35);
+  box-shadow: 5px 5px 9px -1px rgba(255, 255, 255, 0.35);
   position: relative;
   overflow: hidden;
   background-image: linear-gradient(to bottom right, #fdfcfb, #e2d1c3);
