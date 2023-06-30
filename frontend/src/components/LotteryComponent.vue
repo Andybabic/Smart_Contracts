@@ -25,6 +25,7 @@ export default {
       managerMinimumPlayer: 0,
       balance: 0,
       timeout: 0,
+      moneyPotIcon: require("../assets/money-pot.svg"),
     };
   },
   async mounted() {
@@ -83,6 +84,21 @@ export default {
       const players = await this.contractInstance.methods.getPlayers().call();
       const ticketCount = players.length;
 
+      const balance = await this.web3.eth.getBalance(this.contractAddress);
+
+      if (balance) {
+        this.balance = this.web3.utils.fromWei(Number(balance), "ether");
+      } else {
+        this.balance = 0;
+      }
+
+      const timeout = await this.contractInstance.methods
+        .getTimoutStamp()
+        .call();
+
+      if (timeout) {
+        this.timeout = Number(timeout);
+      }
 
       this.currentState = Number(currentState);
       this.ticketPrice = Number(ticketPriceEth);
@@ -274,7 +290,7 @@ export default {
           .getTimoutStamp()
           .call();
 
-        if(timeout){
+        if (timeout) {
           this.timeout = Number(timeout);
         }
         console.log("timeout", this.timeout);
@@ -356,13 +372,15 @@ export default {
     <div class="overlay"></div>
 
     <div class="header">
-      <div v-if="this.balance">
-        POT currently: {{ this.balance }}!
-      </div>
       <div v-if="timeout > Date.now()">
         Timeout {{ timeout - Date.now() }} seconds!
       </div>
-      <div v-if="currentState === 0 || currentState === 3 && timeout < Date.now()" class="status-open">
+      <div
+        v-if="
+          currentState === 0 || (currentState === 3 && timeout < Date.now())
+        "
+        class="status-open"
+      >
         <p class="status-message">Quokka is currently open for entries!</p>
       </div>
       <div v-else-if="currentState === 1" class="status-closed">
@@ -379,7 +397,24 @@ export default {
     </div>
 
     <div class="content">
-      <div v-if="currentState === 0 || currentState === 3 && timeout < Date.now()" class="lottery-info">
+      <div v-if="this.balance">
+        <div class="pot">POT currently: {{ this.balance }} ETH!</div>
+        <div class="money-pot-container">
+          <img
+            :src="moneyPotIcon"
+            alt="money-pot"
+            class="money-pot"
+            width="50"
+            height="50"
+          />
+        </div>
+      </div>
+      <div
+        v-if="
+          currentState === 0 || (currentState === 3 && timeout < Date.now())
+        "
+        class="lottery-info"
+      >
         <div class="eth-ticket-container">
           <div class="eth-container">
             <p>{{ ticketPrice }}</p>
@@ -424,6 +459,9 @@ export default {
 </template>
 
 <style>
+.pot {
+  padding: 15px;
+}
 .manager-actions {
   display: flex;
   flex-direction: column;
@@ -667,7 +705,8 @@ body {
   max-width: 600px;
   padding: 50px;
   border-radius: 10px;
-  box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5);
+-webkit-box-shadow: 5px 5px 9px -1px rgba(255,255,255,0.35); 
+box-shadow: 5px 5px 9px -1px rgba(255,255,255,0.35);
   position: relative;
   overflow: hidden;
   background-image: linear-gradient(to bottom right, #fdfcfb, #e2d1c3);

@@ -1,5 +1,3 @@
-
-
 <script>
 import LotteryComponent from "./components/LotteryComponent.vue";
 
@@ -9,31 +7,26 @@ export default {
     LotteryComponent,
   },
   data() {
-    return {
-      
-    };
+    return {};
   },
 };
 </script>
 
-
 <template>
-
   <div id="app">
-    
-
     <LotteryComponent />
 
-    <video autoplay loop muted>
-      <source src="./assets/gambling-background-casino-and-poker-concept-2023-04-14-17-11-37-utc.mp4" type="video/mp4">
+    <video autoplay loop muted playbackRate="0.9">
+      <source
+        src="./assets/gambling-background-casino-and-poker-concept-2023-04-14-17-11-37-utc.mp4"
+        type="video/mp4"
+      />
     </video>
-
+    <div class="overlay"></div>
   </div>
-
 </template>
 
 <style>
-
 video {
   position: absolute;
   top: 0;
@@ -42,12 +35,14 @@ video {
   height: 100%;
   object-fit: cover;
   z-index: -1;
-  filter: blur(3px);
+  filter: blur(5px) brightness(40%);
 }
 
 #app {
+  position: relative;
   text-align: center;
   min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -70,11 +65,8 @@ video {
     font-size: 10px;
   }
 
-  body{
+  body {
     font-size: 10px;
   }
-  
 }
-
-
 </style>
