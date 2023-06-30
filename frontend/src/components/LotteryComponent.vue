@@ -1,12 +1,14 @@
 
 <script>
+/* eslint-disable */
 import Web3 from 'web3';
 import axios from "axios";
+import Swal from 'sweetalert2'
 
 export default {
   data() {
     return {
-      contractAddress: '0xbbaa17F1a80B18d69Ae9070420699ecA96DAb01B',
+      contractAddress: '0x6fae85ec11b3001646f19f3ef94b4f08e0bc0117',
       contractABI: [], // Contract ABI should be provided here
       web3: null,
       ticketPrice: 0,
@@ -18,8 +20,7 @@ export default {
       isManager: false,
       winner: null,
       win: false,
-      deniedTransaction: false,
-      
+      updateInterval: null
     };
   },
   async mounted() {
@@ -27,6 +28,9 @@ export default {
     await this.loadContract();
   },
   methods: {
+    getSpinnerGif(){
+      return require("@/assets/spinner.gif");
+    },
     async initializeWeb3() {
       try {
           if (typeof window.ethereum !== 'undefined') {
@@ -43,27 +47,13 @@ export default {
       }
   
     },
-    async getContractABI(contractAddress) {
-      try {
-        const response = await axios.get(`https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${contractAddress}&apikey=UKPPPWAGDJFVPQ9DIU3EH157GPQ9132UDT`);
-        const result = response.data;
-        if (result.status === '1') {
-          return JSON.parse(result.result);
-        } else {
-          console.log(result)
-          throw new Error('Failed to fetch contract ABI');
-        }
-      } catch (error) {
-        console.error('Error fetching contract ABI:', error);
-        throw error;
-      }
-    },
     async loadContract() {
       const abi = require("../assets/abi.json")
-      this.contractInstance = new this.web3.eth.Contract(abi, this.contractAddress);
+      this.contractInstance = await new this.web3.eth.Contract(abi, this.contractAddress);
+
       const currentState = await this.contractInstance.methods.getCurrentState().call();
       const ticketPrice = await this.contractInstance.methods.ticketPrice().call();
-      const ticketPriceEth = this.web3.utils.fromWei(ticketPrice, "ether");
+      const ticketPriceEth = await this.web3.utils.fromWei(ticketPrice, "ether");
       const minimumPlayers = await this.contractInstance.methods.minimumPlayers().call();
 
       const players = await this.contractInstance.methods.getPlayers().call();
@@ -75,64 +65,106 @@ export default {
       this.players = players;
       this.ticketCount = ticketCount;
       this.isManager = false;
+
+      this.setIntervalCheckingContract();
     },
     async enterLottery() {
       try {
         const accounts = await this.web3.eth.getAccounts();
         const ticketPriceWei = this.web3.utils.toWei(this.ticketPrice.toString(), "ether");
-        this.contractInstance.methods.enter(ticketPriceWei).send({from: accounts[0], value: ticketPriceWei})
-          .on('receipt', () => {
-            console.log('Entered lottery successfully.');
-            this.loadContract();
-          })
-          .on('error', error => {
-            if (error.message.includes('User denied transaction signature')) {
-              this.deniedTransaction = true;
+        const playerAddress = accounts[0];
+        const isPlayerEntered = await this.contractInstance.methods.hasPlayerEntered(playerAddress).call();
 
-            } else {
-              console.error('Error entering lottery:', error.message);
-            }
-          });
-       
+        if(isPlayerEntered){
+          await this.showAlert("Already Entered", "You have already entered. Please wait until the winner is picked.", "info");
+        } else {
+          showLoading();
+          // send coins
+          const result = await this.contractInstance.methods.enter(ticketPriceWei).send({from: accounts[0], value: ticketPriceWei});
+          
+          // retrieve hash and check for completion
+          const txHash = result.transactionHash;
+
+          // wait until transaction is complete
+          const transactionResult = await this.waitForTransactionCompletion();
+
+          // check result
+          if(transactionResult){
+            Swal.close();
+            await this.showAlert("Success", "Transaction finished successfully. You entered lottery!", "success");
+          } else {
+            Swal.close();
+            await this.showAlert("Error", "Something went wrong during transaction. Please try again.", "error");
+          }
+        }
       } catch (error) {
-        console.error('Error entering lottery:', error.message);
+        this.showAlert("Error occurred during Transaction.", error, "error");
       }
     },
-    async pickWinner() {
-      try {
-        this.contractInstance.methods.pickWinner().send()
-            .on('receipt', receipt => {
-              console.log('Winner picked successfully.');
-
-              // Retrieve the winner event from the receipt
-              const winnerEvent = receipt.events.WinnerPicked;
-              if (winnerEvent) {
-                const winnerAddress = winnerEvent.returnValues.winner;
-                this.winner = winnerAddress;
-
-                const accounts = this.web3.eth.getAccounts();
-                if (this.winner === accounts[0]) {
-                  this.win = true;
-
-                  console.log("You are the winner!");
-                  
-                } else {
-                  this.win = false;
-
-                  console.log("You are not the winner!");
-                
-                }
-              }
-
-              this.loadContract();
-            })
-            .on('error', error => {
-              console.error('Error picking winner:', error.message);
-            });
-      } catch (error) {
-        console.error('Error picking winner:', error.message);
-      }
+    async showLoading(message){
+      Swal.fire({
+        text: message,
+        icon,
+        showConfirmButton: false,
+        showCancelButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        html: `
+          <div class="loading-container">
+            <div class="loading-indicator">
+              <img src="@/assets/spinner.gif" alt="Loading">
+            </div>
+            <div class="loading-text">
+              Loading...
+            </div>
+          </div>
+        `,
+        customClass: {
+          confirmButton: 'alert-ok-button', // Apply custom class to the confirm button
+          cancelButton: 'alert-cancel-button', // Apply custom class to the cancel button
+        },
+      });
     },
+
+    async showAlert(title, message, icon){
+      Swal.fire({
+        title,
+        text: message,
+        icon,
+        customClass: {
+          confirmButton: 'alert-ok-button', // Apply custom class to the confirm button
+          cancelButton: 'alert-cancel-button', // Apply custom class to the cancel button
+        },
+      });
+    },
+
+    async waitForTransactionCompletion(transactionHash) {
+      let receipt = null;
+      while (receipt === null) {
+        receipt = await web3.eth.getTransactionReceipt(transactionHash);
+        if (receipt && receipt.status === false) {
+          throw new Error("Transaction failed or reverted");
+        }
+        await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay between each check (e.g., 3 seconds)
+      }
+      return receipt;
+    },
+
+    async setIntervalCheckingContract(){
+      this.updateInterval = setInterval(async () => {
+        const currentState = await this.contractInstance.methods.getCurrentState().call();
+        this.players = await this.contractInstance.methods.getPlayers().call();
+
+        if(this.currentState !== currentState){
+          try{
+            const isPlayerWinner = await this.contractInstance.methods.checkIfWinner().call();
+            console.log("AM I WINNER?", isPlayerWinner);
+          } catch(e) {}
+        }
+
+      }, 5000);
+    }
+
   }
 }
 </script>
@@ -180,6 +212,27 @@ export default {
 </template>
 
 <style>
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.loading-indicator {
+  margin-bottom: 10px;
+}
+
+.loading-text {
+  font-size: 14px;
+  color: #888;
+}
+
+.alert-ok-button, .alert-cancel-button{
+  max-height: 50px;
+}
 
 .winning-message {
   background-color: green;

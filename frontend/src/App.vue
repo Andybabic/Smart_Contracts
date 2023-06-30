@@ -2,7 +2,7 @@
 
 <script>
 import LotteryComponent from "./components/LotteryComponent.vue";
-import {Countdown} from 'vue3-flip-countdown'
+import {Countdown} from 'vue3-flip-countdown';
 
 export default {
   name: "App",
