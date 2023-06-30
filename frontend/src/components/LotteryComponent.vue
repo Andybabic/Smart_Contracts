@@ -112,7 +112,7 @@ export default {
         html: `
           <div class="loading-container">
             <div class="loading-indicator">
-              <img src="@/assets/spinner.gif" alt="Loading">
+              <img src="${this.getSpinnerGif()}" alt="Loading">
             </div>
             <div class="loading-text">
               Loading...
