@@ -104,7 +104,6 @@ export default {
     },
     async showLoading(message){
       Swal.fire({
-        text: message,
         showConfirmButton: false,
         showCancelButton: false,
         allowOutsideClick: false,
@@ -115,7 +114,7 @@ export default {
               <img src="${this.getSpinnerGif()}" alt="Loading">
             </div>
             <div class="loading-text">
-              Loading...
+              ${message}...
             </div>
           </div>
         `,
