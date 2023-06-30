@@ -8,7 +8,7 @@ export default {
   name: "LotteryComponent",
   data() {
     return {
-      contractAddress: "0x51777858043370dbac0dbb5df03d567c2afa3f68",
+      contractAddress: "0x059d3ada63528ec9c032aede7d0c0b8303f0ec97",
       contractABI: [], // Contract ABI should be provided here
       web3: null,
       ticketPrice: 0,
@@ -23,6 +23,8 @@ export default {
       updateInterval: null,
       managerTicketPrice: 0,
       managerMinimumPlayer: 0,
+      balance: 0,
+      timeout: 0,
     };
   },
   async mounted() {
@@ -81,11 +83,12 @@ export default {
       const players = await this.contractInstance.methods.getPlayers().call();
       const ticketCount = players.length;
 
-      this.currentState = currentState;
-      this.ticketPrice = ticketPriceEth;
+
+      this.currentState = Number(currentState);
+      this.ticketPrice = Number(ticketPriceEth);
       this.minimumPlayers = minimumPlayers;
       this.players = players;
-      this.ticketCount = ticketCount;
+      this.ticketCount = Number(ticketCount);
 
       if (localStorage.getItem("txHash")) {
         this.showLoading(
@@ -191,6 +194,7 @@ export default {
         let receipt = null;
         while (receipt === null) {
           receipt = await this.web3.eth.getTransactionReceipt(transactionHash);
+          console.log("RECEIPT", receipt);
           if (receipt && receipt.status == false) {
             throw new Error("Transaction failed or reverted");
           } else {
@@ -209,6 +213,7 @@ export default {
         const transactionResult = await this.waitForTransactionCompletion(
           txHash
         );
+        console.log("RESULT", transactionResult);
         // check result
         if (transactionResult) {
           Swal.close();
@@ -257,10 +262,32 @@ export default {
           await this.contractInstance.methods.getPlayers().call()
         ).length;
 
-        if (this.currentState !== currentState) {
+        const balance = await this.web3.eth.getBalance(this.contractAddress);
+
+        if (balance) {
+          this.balance = this.web3.utils.fromWei(Number(balance), "ether");
+        } else {
+          this.balance = 0;
+        }
+
+        const timeout = await this.contractInstance.methods
+          .getTimoutStamp()
+          .call();
+
+        if(timeout){
+          this.timeout = Number(timeout);
+        }
+        console.log("timeout", this.timeout);
+
+        console.log(
+          "BALANCE",
+          await this.web3.eth.getBalance(this.contractAddress)
+        );
+
+        if (this.currentState !== Number(currentState)) {
           try {
             const accounts = await this.web3.eth.getAccounts();
-            if(accounts && accounts.length){
+            if (accounts && accounts.length) {
               const isPlayerWinner = await this.contractInstance.methods
                 .checkIfWinner()
                 .call({ from: address[0] });
@@ -268,6 +295,8 @@ export default {
             }
           } catch (e) {}
         }
+
+        this.currentState = Number(currentState);
       }, 5000);
     },
 
@@ -327,24 +356,30 @@ export default {
     <div class="overlay"></div>
 
     <div class="header">
-      <div v-if="currentState === BigInt(0n)" class="status-open">
+      <div v-if="this.balance">
+        POT currently: {{ this.balance }}!
+      </div>
+      <div v-if="timeout > Date.now()">
+        Timeout {{ timeout - Date.now() }} seconds!
+      </div>
+      <div v-if="currentState === 0 || currentState === 3 && timeout < Date.now()" class="status-open">
         <p class="status-message">Quokka is currently open for entries!</p>
       </div>
-      <div v-else-if="currentState === BigInt(1n)" class="status-closed">
+      <div v-else-if="currentState === 1" class="status-closed">
         <p class="status-message">
           Lottery is closed. Waiting for the winner to be picked!
         </p>
       </div>
-      <div v-else-if="currentState === BigInt(2n)" class="status-finished">
-        <p class="status-message">
-          Lottery has finished. Winner: <span class="winner">{{ winner }}</span>
-        </p>
-      </div>
       <p class="loading" v-else>Connect your Wallet to the Lottery ...</p>
+      <!-- <div v-if="currentState === 3" class="status-finished">
+        <p class="status-message">
+          Lottery has finished. Latest Winner: <span class="winner">{{ winner }}</span>
+        </p>
+      </div> -->
     </div>
 
     <div class="content">
-      <div v-if="currentState === BigInt(0n)" class="lottery-info">
+      <div v-if="currentState === 0 || currentState === 3 && timeout < Date.now()" class="lottery-info">
         <div class="eth-ticket-container">
           <div class="eth-container">
             <p>{{ ticketPrice }}</p>
