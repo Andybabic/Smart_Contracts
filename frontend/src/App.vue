@@ -66,7 +66,11 @@ video {
 
 @media screen and (max-width: 600px) {
   #app {
-    font-size: 14px;
+    font-size: 10px;
+  }
+
+  body{
+    font-size: 10px;
   }
   
 }
