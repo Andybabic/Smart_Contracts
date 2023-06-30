@@ -98,6 +98,7 @@ export default {
           }
         }
       } catch (error) {
+        Swal.close();
         this.showAlert("Error occurred during Transaction.", error, "error");
       }
     },
@@ -140,7 +141,7 @@ export default {
     async waitForTransactionCompletion(transactionHash) {
       let receipt = null;
       while (receipt === null) {
-        receipt = await web3.eth.getTransactionReceipt(transactionHash);
+        receipt = await this.web3.eth.getTransactionReceipt(transactionHash);
         if (receipt && receipt.status === false) {
           throw new Error("Transaction failed or reverted");
         }
