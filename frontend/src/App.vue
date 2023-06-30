@@ -51,6 +51,7 @@ video {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   font-family: Arial, Helvetica, sans-serif;
 }
 .quokka-image {

@@ -21,6 +21,8 @@ export default {
       winner: null,
       win: false,
       updateInterval: null,
+      managerTicketPrice: 0,
+      managerMinimumPlayer: 0,
     };
   },
   async mounted() {
@@ -55,6 +57,13 @@ export default {
         this.contractAddress
       );
 
+      const accounts = await this.web3.eth.getAccounts();
+      const isManager = await this.contractInstance.methods
+        .isManager()
+        .call({ from: accounts[0] });
+      this.isManager = isManager;
+      console.log("AM I MANAGER?", isManager);
+
       const currentState = await this.contractInstance.methods
         .getCurrentState()
         .call();
@@ -77,13 +86,12 @@ export default {
       this.minimumPlayers = minimumPlayers;
       this.players = players;
       this.ticketCount = ticketCount;
-      this.isManager = false;
 
       if (localStorage.getItem("txHash")) {
         this.showLoading(
           "Your last Transaction is still pending... Please wait until it is finished. Unfortunately it is not possible to participate until the transaction is finished."
         );
-        await this.checkTransaction();
+        await this.checkTransaction(localStorage.getItem("txHash"));
       } else {
         this.setIntervalCheckingContract();
       }
@@ -107,7 +115,7 @@ export default {
           this.showLoading(
             "Your Transaction is currently pending... Please wait until it is finished."
           );
-          await this.checkTransaction();
+          await this.checkTransaction(localStorage.getItem("txHash"));
         } else if (isPlayerEntered) {
           await this.showAlert(
             "Already Entered",
@@ -119,6 +127,8 @@ export default {
             "Please wait until the Transaction is complete. WARNING! Don't close this window until the process is finished!"
           );
 
+          console.log("ACCOUNT", accounts);
+
           // send coins
           const result = await this.contractInstance.methods
             .enter(ticketPriceWei)
@@ -127,9 +137,10 @@ export default {
           // retrieve hash and check for completion
           const txHash = result.transactionHash;
           localStorage.setItem("txHash", "Tom");
+          console.log("txHash", txHash);
 
           // wait until transaction is complete
-          this.checkTransaction();
+          this.checkTransaction(txHash);
         }
       } catch (error) {
         Swal.close();
@@ -176,20 +187,29 @@ export default {
     },
 
     async waitForTransactionCompletion(transactionHash) {
-      let receipt = null;
-      while (receipt === null) {
-        receipt = await this.web3.eth.getTransactionReceipt(transactionHash);
-        if (receipt && receipt.status === false) {
-          throw new Error("Transaction failed or reverted");
+      try {
+        let receipt = null;
+        while (receipt === null) {
+          receipt = await this.web3.eth.getTransactionReceipt(transactionHash);
+          console.log("RECEIPT", receipt);
+          if (receipt && receipt.status) {
+            throw new Error("Transaction failed or reverted");
+          } else {
+            await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay between each check (e.g., 3 seconds)
+          }
         }
-        await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay between each check (e.g., 3 seconds)
+        return receipt;
+      } catch (e) {
+        console.log(e);
+        return null;
       }
-      return receipt;
     },
 
-    async checkTransaction() {
+    async checkTransaction(txHash) {
       try {
-        const transactionResult = await this.waitForTransactionCompletion();
+        const transactionResult = await this.waitForTransactionCompletion(
+          txHash
+        );
         // check result
         if (transactionResult) {
           Swal.close();
@@ -219,14 +239,34 @@ export default {
         const currentState = await this.contractInstance.methods
           .getCurrentState()
           .call();
+
         this.players = await this.contractInstance.methods.getPlayers().call();
+        const ticketPriceWei = await this.contractInstance.methods
+          .ticketPrice()
+          .call();
+
+        this.ticketPrice = await this.web3.utils.fromWei(
+          ticketPriceWei,
+          "ether"
+        );
+
+        this.minimumPlayers = await this.contractInstance.methods
+          .minimumPlayers()
+          .call();
+
+        this.ticketCount = (
+          await this.contractInstance.methods.getPlayers().call()
+        ).length;
 
         if (this.currentState !== currentState) {
           try {
-            const isPlayerWinner = await this.contractInstance.methods
-              .checkIfWinner()
-              .call();
-            console.log("AM I WINNER?", isPlayerWinner);
+            const accounts = await this.web3.eth.getAccounts();
+            if(accounts && accounts.length){
+              const isPlayerWinner = await this.contractInstance.methods
+                .checkIfWinner()
+                .call({ from: address[0] });
+              console.log("AM I WINNER?", isPlayerWinner);
+            }
           } catch (e) {}
         }
       }, 5000);
@@ -234,9 +274,11 @@ export default {
 
     async changeTicketPrice() {
       try {
-        const accounts = await web3.eth.getAccounts();
-        await lotteryContract.methods
-          .changeTicketPrice(ticketPrice)
+        const accounts = await this.web3.eth.getAccounts();
+        await this.contractInstance.methods
+          .changeTicketPrice(
+            this.web3.utils.toWei(this.managerTicketPrice.toString(), "ether")
+          )
           .send({ from: accounts[0] });
       } catch (error) {
         console.error("Failed to change ticket price", error);
@@ -244,9 +286,9 @@ export default {
     },
     async changeMinimumPlayers() {
       try {
-        const accounts = await web3.eth.getAccounts();
-        await lotteryContract.methods
-          .changeMinimumPlayers(playerNumber)
+        const accounts = await this.web3.eth.getAccounts();
+        await this.contractInstance.methods
+          .changeMinimumPlayers(this.managerMinimumPlayer)
           .send({ from: accounts[0] });
       } catch (error) {
         console.error("Failed to change minimum players", error);
@@ -254,8 +296,8 @@ export default {
     },
     async resetLottery() {
       try {
-        const accounts = await web3.eth.getAccounts();
-        await lotteryContract.methods
+        const accounts = await this.web3.eth.getAccounts();
+        await this.contractInstance.methods
           .resetLottery()
           .send({ from: accounts[0] });
       } catch (error) {
@@ -264,8 +306,8 @@ export default {
     },
     async closeLotteryAndPickWinner() {
       try {
-        const accounts = await web3.eth.getAccounts();
-        await lotteryContract.methods
+        const accounts = await this.web3.eth.getAccounts();
+        await this.contractInstance.methods
           .closeLotteryAndPickWinner()
           .send({ from: accounts[0] });
       } catch (error) {
@@ -319,7 +361,7 @@ export default {
         <div>
           <p>Press the Quokka to enter!</p>
         </div>
-        <button @click="enterLottery"></button>
+        <button class="entry-lottery-btn" @click="enterLottery"></button>
       </div>
 
       <!-- <div v-if="win === true && currentState === BigInt(2n)" class="winning-message">
@@ -328,14 +370,14 @@ export default {
       <div v-if="win === false && currentState === BigInt(2n)" class="losing-message">
         <p> Sorry you did not win the lottery!</p>
       </div> -->
-      <div class="manager-actions" v-if="isManager">
+      <div class="manager-actions" v-if="this.isManager">
         <h2>Manager Functions</h2>
         <label>Ticket Price: </label>
-        <input type="number" v-model="ticketPrice" />
+        <input type="number" v-model="managerTicketPrice" />
         <button @click="changeTicketPrice">Change Ticket Price</button>
 
         <label>Minimum Players: </label>
-        <input type="number" v-model="minimumPlayers" />
+        <input type="number" v-model="managerMinimumPlayer" />
         <button @click="changeMinimumPlayers">Change Minimum Players</button>
 
         <button @click="resetLottery">Reset Lottery</button>
@@ -348,6 +390,12 @@ export default {
 </template>
 
 <style>
+.manager-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .meta-info {
   display: flex;
   flex-direction: row;
@@ -535,7 +583,7 @@ p {
   margin-bottom: 5px;
 }
 
-button {
+.entry-lottery-btn {
   padding: 10px 20px;
   background-color: #007bff;
   width: 200px;
@@ -583,7 +631,6 @@ body {
 
 .container {
   max-width: 600px;
-  margin-top: 25vh;
   padding: 50px;
   border-radius: 10px;
   box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5);
