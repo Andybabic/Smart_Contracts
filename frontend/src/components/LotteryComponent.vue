@@ -3,6 +3,9 @@ import Web3 from 'web3';
 import axios from "axios";
 
 export default {
+  name: 'LotteryComponent',
+  components: {
+  },
   data() {
     return {
       contractAddress: '0x6fae85ec11b3001646f19f3ef94b4f08e0bc0117',
@@ -18,6 +21,7 @@ export default {
       winner: null,
       win: false,
       deniedTransaction: false,
+      targetTimestamp: 0,
 
     };
   },
@@ -140,11 +144,10 @@ export default {
 <template>
   <div class="container">
     <div class="overlay"></div>
-    <video autoplay loop muted>
-      <source src="../assets/gambling-background-casino-and-poker-concept-2023-04-14-17-11-37-utc.mp4" type="video/mp4">
-    </video>
+
+
     <div class="content">
-      <div v-if="currentState === BigInt(0n)">
+      <div v-if="currentState === BigInt(0n)" class="status">
         <div class="dot dot-green"></div>
         <p class="status-message">Lottery is currently open for entries.</p>
       </div>
@@ -159,14 +162,27 @@ export default {
       <p class="loading" v-else>Connect your Wallet to the Lottery ...</p>
 
       <div v-if="currentState === BigInt(0n)" class="lottery-info">
-        <p>Ticket Price: {{ ticketPrice }} ETH</p>
-        <p>Minimum Players: {{ minimumPlayers }}</p>
-        <p>Current Players: {{ players.length }}</p>
-        <p>Total Tickets Sold: {{ ticketCount }}</p>
-        <div class="input-group">
-          <label for="customPrice">Custom Ticket Price (ETH):</label>
-          <input type="number" id="customPrice" v-model="ticketPrice" step="0.01">
+
+      <div class="eth-ticket-container">
+      
+      <div class="eth-container">
+
+        <p>{{ ticketPrice }} </p>
+        <img src="../assets/ethereum.png" alt="eth" class="eth">
+      
+      </div>
+        
+        <div class="ticket-container">
+          <p>{{ ticketCount }}</p>
+        <img src="../assets/fahrkarte.png" alt="ticket" class="ticket">
+        
         </div>
+        </div>
+
+        <p>Minimum Players: {{ minimumPlayers }}</p>
+
+        
+
         <div>
           <p> Press the Quokka to enter the lottery </p>
         </div>
@@ -191,6 +207,55 @@ export default {
 </template>
 
 <style>
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+
+  margin-bottom: 20px;
+}
+
+.eth-ticket-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+
+  margin-bottom: 20px;
+}
+
+.eth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 20px;
+}
+
+.eth-container p {
+  margin-right: 10px;
+  font-size: 22px;
+}
+
+.eth-container img {
+  width: 50px;
+  height: 50px;
+}
+
+
+.ticket-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 20px;
+}
+
+.ticket-container p {
+  margin-right: 10px;
+  font-size: 22px;
+}
+
 
 .winning-message {
   background-color: green;
@@ -224,34 +289,11 @@ export default {
 }
 
 
-.content {
-  margin-top: 20px;
-}
-
-.footer {
-  background: linear-gradient(to right, #6dd5fa, #2980b9);
-  color: #fff;
-  padding: 10px;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-  text-align: center;
-}
-
-h1 {
-  font-size: 24px;
-  margin-bottom: 20px;
-}
-
 p {
   margin-bottom: 15px;
   font-size: 22px;
 }
 
-.status-message {
-  font-size: 25px;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
 
 .dot {
   height: 25px;
@@ -287,15 +329,6 @@ p {
   margin-bottom: 5px;
 }
 
-input[type="number"] {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-  width: 100%;
-  box-sizing: border-box;
-  margin: 5px 0;
-}
 
 
 button {
@@ -312,6 +345,7 @@ button {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.5);
 }
 
 
@@ -320,10 +354,6 @@ button {
   margin-top: 20px;
 }
 
-.manager-actions {
-  margin-top: 20px;
-  text-align: right;
-}
 
 @media (max-width: 480px) {
   h1 {
@@ -350,25 +380,24 @@ body {
 }
 
 .container {
-  width: 180%;
-  height: 60vh;
-  margin: 0;
-  padding: 0;
-  background-color: #f2f2f2;
-  color: #333;
-  border: 1px solid #ccc;
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to bottom, #f9f9f9, #bfbfbf);
 }
 
-video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: -1;
+@media screen and (max-width: 600px) {
+  .container {
+    margin: auto 20px;
+    border-radius: 10px;
+    box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5);
+
+  }
+  
 }
 
 </style>
