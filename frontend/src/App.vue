@@ -2,17 +2,15 @@
 
 <script>
 import LotteryComponent from "./components/LotteryComponent.vue";
-import {Countdown} from 'vue3-flip-countdown';
 
 export default {
   name: "App",
   components: {
     LotteryComponent,
-    Countdown,
   },
   data() {
     return {
-      targetTimestamp: 0,
+      
     };
   },
 };
@@ -22,12 +20,13 @@ export default {
 <template>
 
   <div id="app">
-
-    <Countdown :targetTimestamp="targetTimestamp" />
+    
 
     <LotteryComponent />
 
-
+    <video autoplay loop muted>
+      <source src="./assets/gambling-background-casino-and-poker-concept-2023-04-14-17-11-37-utc.mp4" type="video/mp4">
+    </video>
 
   </div>
 
@@ -35,23 +34,40 @@ export default {
 
 <style>
 
+video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
 #app {
   text-align: center;
-  min-height: 100vh;  
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
-  color: #2c3e50;
-  
-
-
+  font-family: Arial, Helvetica, sans-serif;
 }
-
+.quokka-image {
+  width: 300px; /* Adjust the width as needed */
+  height: auto;
+  margin-bottom: 20px; /* Add margin to create space between the image and other elements */
+}
 
 .logo {
   height: 100px;
   width: 100px;
+}
+
+@media screen and (max-width: 600px) {
+  #app {
+    font-size: 14px;
+  }
+  
 }
 
 

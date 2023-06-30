@@ -1,4 +1,3 @@
-
 <script>
 /* eslint-disable */
 import Web3 from 'web3';
@@ -6,6 +5,7 @@ import axios from "axios";
 import Swal from 'sweetalert2'
 
 export default {
+  name: 'LotteryComponent',
   data() {
     return {
       contractAddress: '0x6fae85ec11b3001646f19f3ef94b4f08e0bc0117',
@@ -33,19 +33,19 @@ export default {
     },
     async initializeWeb3() {
       try {
-          if (typeof window.ethereum !== 'undefined') {
+        if (typeof window.ethereum !== 'undefined') {
           this.web3 = new Web3(window.ethereum);
           await window.ethereum.enable();
         } else if (typeof window.web3 !== 'undefined') {
           this.web3 = new Web3(window.web3.currentProvider);
         } else {
           this.web3 = new Web3('https://mainnet.infura.io/v3/84a017e2ca8b4a02b39ab4c41bdbb1a2'); // Update with your Ethereum node URL
-      }
+        }
       } catch (error) {
         console.error('Error initializing web3:', error);
         throw error;
       }
-  
+
     },
     async loadContract() {
       const abi = require("../assets/abi.json")
@@ -172,37 +172,58 @@ export default {
 
 <template>
   <div class="container">
+    <div class="overlay"></div>
+
 
     <div class="content">
-      <p class="status-message" v-if="currentState === BigInt(0n)">Lottery is currently open for entries.</p>
-      <p class="status-message" v-else-if="currentState === BigInt(1n)">Lottery is closed. Waiting for the winner to be picked.</p>
-      <p class="status-message" v-else-if="currentState === BigInt(2n)">Lottery has finished. Winner: <span class="winner">{{ winner }}</span></p>
+      <div v-if="currentState === BigInt(0n)" class="status">
+        <div class="dot dot-green"></div>
+        <p class="status-message">Lottery is currently open for entries.</p>
+      </div>
+      <div v-else-if="currentState === BigInt(1n)">
+        <div class="dot dot-yellow"></div>
+        <p class="status-message">Lottery is closed. Waiting for the winner to be picked.</p>
+      </div>
+      <div v-else-if="currentState === BigInt(2n)">
+        <div class="dot dot-red"></div>
+        <p class="status-message">Lottery has finished. Winner: <span class="winner">{{ winner }}</span></p>
+      </div>
       <p class="loading" v-else>Connect your Wallet to the Lottery ...</p>
 
-      <div  v-if="currentState === BigInt(0n)" class="lottery-info">
-        <p>Ticket Price: {{ ticketPrice }} ETH</p>
-        <p>Minimum Players: {{ minimumPlayers }}</p>
-        <p>Current Players: {{ players.length }}</p>
-        <p>Total Tickets Sold: {{ ticketCount }}</p>
-        <div class="input-group">
-          <label for="customPrice">Custom Ticket Price (ETH):</label>
-          <input type="number" id="customPrice" v-model="ticketPrice" step="0.01">
+      <div v-if="currentState === BigInt(0n)" class="lottery-info">
+
+      <div class="eth-ticket-container">
+      
+      <div class="eth-container">
+
+        <p>{{ ticketPrice }} </p>
+        <img src="../assets/ethereum.png" alt="eth" class="eth">
+      
+      </div>
+        
+        <div class="ticket-container">
+          <p>{{ ticketCount }}</p>
+        <img src="../assets/fahrkarte.png" alt="ticket" class="ticket">
+        
         </div>
+        </div>
+
+        <p>Minimum Players: {{ minimumPlayers }}</p>
+
+        
+
         <div>
-        <p> Press the Quokka to enter the lottery </p>
+          <p> Press the Quokka to enter the lottery </p>
         </div>
         <button @click="enterLottery"></button>
       </div>
 
-      <div v-if="win === true && currentState === BigInt(2n)" class="winning-message">
+      <!-- <div v-if="win === true && currentState === BigInt(2n)" class="winning-message">
         <p>Congratulations you won the lottery!</p>
       </div>
       <div v-if="win === false && currentState === BigInt(2n)" class="losing-message">
         <p> Sorry you did not win the lottery!</p>
-      </div>
-      <div v-if="deniedTransaction" class="denied-transaction">
-        <p>Transaction denied.</p>
-      </div>
+      </div> -->
       <div class="manager-actions">
         <button v-if="isManager" @click="pickWinner">Pick Winner</button>
       </div>
@@ -234,6 +255,55 @@ export default {
   max-height: 50px;
 }
 
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+
+  margin-bottom: 20px;
+}
+
+.eth-ticket-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+
+  margin-bottom: 20px;
+}
+
+.eth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 20px;
+}
+
+.eth-container p {
+  margin-right: 10px;
+  font-size: 22px;
+}
+
+.eth-container img {
+  width: 50px;
+  height: 50px;
+}
+
+
+.ticket-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 20px;
+}
+
+.ticket-container p {
+  margin-right: 10px;
+  font-size: 22px;
+}
+
+
 .winning-message {
   background-color: green;
   color: white;
@@ -260,54 +330,35 @@ export default {
 
 .lottery-info {
   margin-bottom: 20px;
-  font-size: 18px;
-
+  font-size: 22px;
 
 
 }
 
-.container {
-  max-width: 800px;
-  padding: 20px;
-  margin: 10 auto;
-
-  background-color: gold; 
-
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-
-}
-
-.content {
-  margin-top: 20px;
-}
-
-.footer {
-  background: linear-gradient(to right, #6dd5fa, #2980b9);
-  color: #fff;
-  padding: 10px;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-  text-align: center;
-}
-
-h1 {
-  font-size: 24px;
-  margin-bottom: 20px;
-}
 
 p {
-  margin-bottom: 10px;
-  font-size: 16px;
+  margin-bottom: 15px;
+  font-size: 22px;
 }
 
-.status-message {
-  font-size: 18px;
-  font-weight: bold;
 
-  margin-bottom: 20px;
+.dot {
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
 
+.dot-green {
+  background-color: lightgreen;
+}
+
+.dot-yellow {
+  background-color: orange;
+}
+
+.dot-red {
+  background-color: red;
 }
 
 .winner {
@@ -323,16 +374,6 @@ p {
 
 .label {
   margin-bottom: 5px;
-}
-
-input[type="number"] {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-  width: 100%;
-  box-sizing: border-box;
-  margin: 5px 0;
 }
 
 
@@ -351,6 +392,7 @@ button {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.5);
 }
 
 
@@ -359,18 +401,50 @@ button {
   margin-top: 20px;
 }
 
-.manager-actions {
-  margin-top: 20px;
-  text-align: right;
-}
 
 @media (max-width: 480px) {
   h1 {
     font-size: 20px;
   }
-  
+
   .input-group {
     flex-direction: column;
   }
 }
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  position: relative;
+}
+
+.container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to bottom, #f9f9f9, #bfbfbf);
+}
+
+@media screen and (max-width: 600px) {
+  .container {
+    margin: auto 20px;
+    border-radius: 10px;
+    box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5);
+
+  }
+  
+}
+
 </style>
