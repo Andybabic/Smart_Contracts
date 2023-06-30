@@ -29,7 +29,7 @@ export default {
   },
   methods: {
     getSpinnerGif(){
-      return require("@/assets/spinner.gif");
+      return require("../assets/spinner.gif");
     },
     async initializeWeb3() {
       try {
@@ -78,7 +78,7 @@ export default {
         if(isPlayerEntered){
           await this.showAlert("Already Entered", "You have already entered. Please wait until the winner is picked.", "info");
         } else {
-          showLoading();
+          this.showLoading();
           // send coins
           const result = await this.contractInstance.methods.enter(ticketPriceWei).send({from: accounts[0], value: ticketPriceWei});
           
