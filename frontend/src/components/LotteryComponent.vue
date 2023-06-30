@@ -8,7 +8,7 @@ export default {
   name: "LotteryComponent",
   data() {
     return {
-      contractAddress: "0x1db6bf5535f5c4084ba8cb5be0a0543a193777c2",
+      contractAddress: "0x51777858043370dbac0dbb5df03d567c2afa3f68",
       contractABI: [], // Contract ABI should be provided here
       web3: null,
       ticketPrice: 0,
@@ -21,8 +21,6 @@ export default {
       winner: null,
       win: false,
       updateInterval: null,
-      ticketPrice: 0,
-      minimumPlayers: 0,
     };
   },
   async mounted() {
