@@ -3,52 +3,6 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "playerNumber",
-				"type": "uint256"
-			}
-		],
-		"name": "changeMinimumPlayers",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_ticketPrice",
-				"type": "uint256"
-			}
-		],
-		"name": "changeTicketPrice",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_timeoutToRestart",
-				"type": "uint256"
-			}
-		],
-		"name": "changeTimeoutDuration",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "closeLotteryAndPickWinner",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
 				"name": "_ticketPrice",
 				"type": "uint256"
 			},
@@ -78,19 +32,6 @@
 		],
 		"name": "CurrentStatus",
 		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_ticketPrice",
-				"type": "uint256"
-			}
-		],
-		"name": "enter",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -136,13 +77,6 @@
 		],
 		"name": "PlayerNumberChanged",
 		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "resetLottery",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -197,6 +131,45 @@
 		"type": "event"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "playerNumber",
+				"type": "uint256"
+			}
+		],
+		"name": "changeMinimumPlayers",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_ticketPrice",
+				"type": "uint256"
+			}
+		],
+		"name": "changeTicketPrice",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_timeoutToRestart",
+				"type": "uint256"
+			}
+		],
+		"name": "changeTimeoutDuration",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "checkIfWinner",
 		"outputs": [
@@ -219,6 +192,26 @@
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "closeLotteryAndPickWinner",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_ticketPrice",
+				"type": "uint256"
+			}
+		],
+		"name": "enter",
+		"outputs": [],
+		"stateMutability": "payable",
 		"type": "function"
 	},
 	{
@@ -303,6 +296,13 @@
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "resetLottery",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
